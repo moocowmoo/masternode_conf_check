@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-""" simple 'masternode list' health check """
+"""
+simple masternode status health check using masternode.conf
+"""
 
 my_dash_cli = "/home/ubuntu/.dash/dash-cli"
 my_mn_conf = "/home/ubuntu/.dash/masternode.conf"
@@ -40,8 +42,9 @@ def get_masternodes_from_dashd():
     nodes = {}
     cmd = " ".join([my_dash_cli, 'masternode list full'])
     node_list = run_command(cmd)
+
     for line in node_list.split("\n"):
-        line = line.translate(None, ''.join('"{}'))
+        line = line.translate(None, ''.join(',"{}'))
         if not line:
             continue
         (ftx, nop, status, protocol, address, ip,
@@ -58,6 +61,14 @@ def get_masternodes_from_dashd():
             'active': active,
             'last_paid': last_paid
         }
+    queue_order = map(
+        lambda i: (i, nodes[i]), sorted(
+            nodes, key=lambda s: int(nodes[s]['last_paid'])))
+    queue_position = 0
+    for (ftx, entry) in queue_order:
+        queue_position += 1
+        nodes[ftx]['queue_position'] = queue_position
+        nodes[ftx]['in_selection_queue'] = queue_position <= len(nodes) / 10
     return nodes
 
 
@@ -65,18 +76,30 @@ def main():
     my_masternodes = get_masternodes_from_conf()
     masternode_list = get_masternodes_from_dashd()
 
-    for my_node in sorted(my_masternodes,
-                          key=lambda k: my_masternodes[k]['alias']):
+    sort_mode = 'rank'
+
+    def sortby(mode):
+        if mode == 'alias':
+            return lambda k: my_masternodes[k]['alias'] # noqa
+        elif mode == 'rank':
+            return lambda k: int(masternode_list[k]['queue_position']) # noqa
+
+    for my_node in sorted(my_masternodes, key=sortby(sort_mode)):
         if my_node in masternode_list:
             if masternode_list[my_node]['status'] == 'ENABLED':
-                print (my_masternodes[my_node]['alias'] +
-                       " ONLINE - in masternode list")
+                print "%s %s %4d/%s %s" % (
+                    my_masternodes[my_node]['alias'],
+                    " ONLINE - in masternode list - rank:",
+                    masternode_list[my_node]['queue_position'],
+                    len(masternode_list),
+                    masternode_list[my_node]['in_selection_queue'] and '(in selection queue)' or ''
+                )
             else:
                 print (my_masternodes[my_node]['alias'] +
-                        " OFFLINE -- NOT ENABLED")
+                       " OFFLINE -- NOT ENABLED")
         else:
             print (my_masternodes[my_node]['alias'] +
-                    " OFFLINE -- NOT IN MASTERNODE LIST")
+                   " OFFLINE -- NOT IN MASTERNODE LIST")
 
 if __name__ == "__main__":
     main()
