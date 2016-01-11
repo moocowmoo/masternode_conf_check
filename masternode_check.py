@@ -61,14 +61,11 @@ def get_masternodes_from_dashd():
             'active': active,
             'last_paid': last_paid
         }
-    queue_order = map(
-        lambda i: (i, nodes[i]), sorted(
-            nodes, key=lambda s: int(nodes[s]['last_paid'])))
-    queue_position = 0
-    for (ftx, entry) in queue_order:
-        queue_position += 1
-        nodes[ftx]['queue_position'] = queue_position
-        nodes[ftx]['in_selection_queue'] = queue_position <= len(nodes) / 10
+    queue_order = list(enumerate(map(lambda i: i, sorted(
+            nodes, key=lambda s: int(nodes[s]['last_paid'])))))
+    for (pos, ftx) in queue_order:
+        nodes[ftx]['queue_position'] = pos
+        nodes[ftx]['in_selection_queue'] = pos <= len(nodes) / 10
     return nodes
 
 
@@ -80,9 +77,9 @@ def main():
 
     def sortby(mode):
         if mode == 'alias':
-            return lambda k: my_masternodes[k]['alias'] # noqa
+            return lambda k: my_masternodes[k]['alias']  # noqa
         elif mode == 'rank':
-            return lambda k: int(masternode_list[k]['queue_position']) # noqa
+            return lambda k: int(masternode_list[k]['queue_position'])  # noqa
 
     for my_node in sorted(my_masternodes, key=sortby(sort_mode)):
         if my_node in masternode_list:
