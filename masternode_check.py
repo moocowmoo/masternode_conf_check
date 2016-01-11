@@ -69,17 +69,18 @@ def get_masternodes_from_dashd():
     return nodes
 
 
-def main():
+def main(sort_mode='rank'):
     my_masternodes = get_masternodes_from_conf()
     masternode_list = get_masternodes_from_dashd()
-
-    sort_mode = 'rank'
 
     def sortby(mode):
         if mode == 'alias':
             return lambda k: my_masternodes[k]['alias']  # noqa
         elif mode == 'rank':
-            return lambda k: int(masternode_list[k]['queue_position'])  # noqa
+            return lambda k: (  # noqa
+                              k in masternode_list
+                              and int(masternode_list[k]['queue_position'])
+                              or 0)
 
     for my_node in sorted(my_masternodes, key=sortby(sort_mode)):
         if my_node in masternode_list:
