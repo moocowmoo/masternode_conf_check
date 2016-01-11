@@ -62,7 +62,7 @@ def get_masternodes_from_dashd():
             'last_paid': last_paid
         }
     queue_order = list(enumerate(map(lambda i: i, sorted(
-            nodes, key=lambda s: int(nodes[s]['last_paid'])))))
+                       nodes, key=lambda s: int(nodes[s]['last_paid'])))))
     for (pos, ftx) in queue_order:
         nodes[ftx]['queue_position'] = pos
         nodes[ftx]['in_selection_queue'] = pos <= len(nodes) / 10
@@ -89,7 +89,8 @@ def main():
                     " ONLINE - in masternode list - rank:",
                     masternode_list[my_node]['queue_position'],
                     len(masternode_list),
-                    masternode_list[my_node]['in_selection_queue'] and '(in selection queue)' or ''
+                    (masternode_list[my_node]['in_selection_queue']
+                     and '(in selection queue)' or '')
                 )
             else:
                 print (my_masternodes[my_node]['alias'] +
