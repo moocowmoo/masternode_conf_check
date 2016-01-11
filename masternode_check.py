@@ -61,7 +61,7 @@ def get_masternodes_from_dashd():
             'active': active,
             'last_paid': last_paid
         }
-    queue_order = list(enumerate(map(lambda i: i, sorted(
+    queue_order = list(enumerate(map(lambda ftx: ftx, sorted(
                        nodes, key=lambda s: int(nodes[s]['last_paid'])))))
     for (pos, ftx) in queue_order:
         nodes[ftx]['queue_position'] = pos
