@@ -46,11 +46,11 @@ def get_masternodes_from_dashd():
     t_now = int(time.time())
 
     for line in node_list.split("\n"):
-        line = line.translate(None, ''.join(',"{}'))
+        line = line.translate(None, ''.join(',"{}:'))
         if not line:
             continue
-        (ftx, nop, status, protocol, address, ip,
-         last_seen, active, last_paid) = line.split()
+        (ftx, status, protocol, address, last_seen, active, last_paid,
+        last_paid_block, ip) = line.split()
         (vin, n) = ftx.split('-')
         # **estimate how many blocks since paid
         blocks_since_paid = int(float(int(t_now) - int(last_paid)) / 150)
